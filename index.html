@@ -134,7 +134,7 @@
     </div>
     <div class="option-group">
       <label>Trennzeichen zwischen Wörtern:</label>
-      <input type="text" id="delimiter" value="" placeholder="Standard: keine Trennung" />
+      <input type="text" id="delimiter" value="-" placeholder="Standard: -" />
     </div>
     <div class="buttons option-group">
       <button id="generateButton">Passphrase generieren</button>
@@ -190,54 +190,52 @@
     }
 
     function getEvenDistributionIndices(total, count) {
-        if (count === 0) return [];
-        if (count === 1) return [Math.floor(total / 2)];
-        const step = (total - 1) / (count - 1);
-        return Array.from({length: count}, (_, i) => Math.round(i * step));
+      if (count === 0) return [];
+      if (count === 1) return [Math.floor(total / 2)];
+      const step = (total - 1) / (count - 1);
+      return Array.from({length: count}, (_, i) => Math.round(i * step));
     }
 
     function generatePassphrase() {
-        const numWords = parseInt(document.getElementById('numWords').value, 10);
-        const specialCharsEnabled = document.getElementById('specialChars').checked;
-        const includeNumbers = document.getElementById('includeNumbers').checked;
-        const delimiter = document.getElementById('delimiter').value;
-        const caseStyle = document.getElementById('caseStyle').value;
+      const numWords = parseInt(document.getElementById('numWords').value, 10);
+      const specialCharsEnabled = document.getElementById('specialChars').checked;
+      const includeNumbers = document.getElementById('includeNumbers').checked;
+      const delimiter = document.getElementById('delimiter').value || "-";
+      const caseStyle = document.getElementById('caseStyle').value;
 
-        if (wordList.length === 0) {
-            document.getElementById('error').textContent = "Fehler: Bitte lade zuerst eine Wortliste hoch!";
-            return "";
-        } else {
-            document.getElementById('error').textContent = "";
-        }
+      if (wordList.length === 0) {
+        document.getElementById('error').textContent = "Fehler: Bitte lade zuerst eine Wortliste hoch!";
+        return "";
+      } else {
+        document.getElementById('error').textContent = "";
+      }
 
-        let passphraseArray = [];
-        let modificationIndices = [];
-        
-        // Berechne Gesamtmodifikationen (Sonderzeichen oder Zahlen)
-        const modificationCount = Math.ceil(numWords * 0.5);
-        
-        if (specialCharsEnabled || includeNumbers) {
-            modificationIndices = getEvenDistributionIndices(numWords, modificationCount);
-        }
+      let passphraseArray = [];
+      let modificationIndices = [];
+      
+      const modificationCount = Math.ceil(numWords * 0.5);
+      
+      if (specialCharsEnabled || includeNumbers) {
+        modificationIndices = getEvenDistributionIndices(numWords, modificationCount);
+      }
 
-        for (let i = 0; i < numWords; i++) {
-            let word = wordList[Math.floor(Math.random() * wordList.length)];
-            word = applyCase(word, caseStyle);
+      for (let i = 0; i < numWords; i++) {
+        let word = wordList[Math.floor(Math.random() * wordList.length)];
+        word = applyCase(word, caseStyle);
 
-            // Modifikationen hinzufügen (entweder Sonderzeichen oder Zahl oder beides)
-            if (modificationIndices.includes(i)) {
-                if (specialCharsEnabled) {
-                    word += getRandomSpecialChar();
-                }
-                if (includeNumbers) {
-                    word += getRandomNumber();
-                }
-            }
-            
-            passphraseArray.push(word);
+        if (modificationIndices.includes(i)) {
+          if (specialCharsEnabled) {
+            word += getRandomSpecialChar();
+          }
+          if (includeNumbers) {
+            word += getRandomNumber();
+          }
         }
         
-        return passphraseArray.join(delimiter);
+        passphraseArray.push(word);
+      }
+      
+      return passphraseArray.join(delimiter);
     }
 
     function copyToClipboard(text) {
@@ -245,13 +243,11 @@
       
       if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(function() {
-          // Erster Text
           successElem.innerHTML = "Passphrase erfolgreich in die Zwischenablage kopiert!<br><strong>Achtung!</strong> Die Passphrase befindet sich noch im Zwischenspeicher.";
           
-          // Den Text nach 6 Sekunden verschwinden lassen
           setTimeout(function() {
             successElem.innerHTML = "";
-          }, 6000); // Erfolgt nach 6 Sekunden
+          }, 6000);
         }, function(err) {
           successElem.textContent = "Fehler beim Kopieren: " + err;
         });
@@ -265,18 +261,15 @@
           const msg = successful ? 'Erfolgreich' : 'Fehler';
           successElem.innerHTML = msg + " in Zwischenablage kopiert!<br><strong>Achtung!</strong> Die Passphrase befindet sich noch im Zwischenspeicher.";
           
-          // Den Text nach 6 Sekunden verschwinden lassen
           setTimeout(function() {
             successElem.innerHTML = "";
-          }, 6000); // Erfolgt nach 6 Sekunden
+          }, 6000);
         } catch (err) {
           successElem.textContent = "Fehler beim Kopieren: " + err;
         }
         document.body.removeChild(textArea);
       }
     }
-
-
 
     function showClipboardWarning() {
       const warning = document.getElementById("clipboardWarning");
