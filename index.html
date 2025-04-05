@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Verbesserter Passphrase Generator</title>
+  <title>Passphrase Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -86,6 +86,13 @@
       font-size: 1em;
       margin-top: 10px;
     }
+    #clipboardWarning {
+      font-weight: bold;
+      color: red;
+      display: none;
+      transition: opacity 0.3s;
+      margin-top: 10px;
+    }
     @media (max-width: 600px) {
       .container {
         padding: 15px;
@@ -137,11 +144,11 @@
     <p id="passphrase"></p>
     <p id="error"></p>
     <p id="success"></p>
+    <p id="clipboardWarning">⚠️ Die Passphrase könnte weiterhin in der Zwischenablage-Historie gespeichert sein!</p>
   </div>
 
   <script>
     let wordList = [];
-    const specialCharsArr = ['@', '#', '$', '%', '&', '*', '!', '?', '_', '+'];
 
     function processWordList(content) {
       return content.trim().toLowerCase().split(/\s+/).filter(word => word.length > 0);
@@ -174,19 +181,12 @@
     }
 
     function getRandomSpecialChar() {
-      return specialCharsArr[Math.floor(Math.random() * specialCharsArr.length)];
+      const specialChars = ['@', '#', '$', '%', '&', '*', '!', '?', '_', '+'];
+      return specialChars[Math.floor(Math.random() * specialChars.length)];
     }
 
     function getRandomNumber() {
       return Math.floor(Math.random() * 10).toString();
-    }
-
-    function containsSpecialChar(str) {
-      return specialCharsArr.some(char => str.includes(char));
-    }
-
-    function containsNumber(str) {
-      return /\d/.test(str);
     }
 
     function generatePassphrase() {
@@ -208,45 +208,45 @@
         let word = wordList[Math.floor(Math.random() * wordList.length)];
         word = applyCase(word, caseStyle);
 
-        let specialPrefix = "";
-        let specialSuffix = "";
         if (specialCharsEnabled) {
-          if (Math.random() < 0.5) {
-            specialPrefix = getRandomSpecialChar();
-          }
-          if (Math.random() < 0.5) {
-            specialSuffix = getRandomSpecialChar();
-          }
+          word = getRandomSpecialChar() + word + getRandomSpecialChar();
         }
-        if (includeNumbers && Math.random() < 0.3) {
+        if (includeNumbers) {
           word += getRandomNumber();
         }
-        passphraseArray.push(specialPrefix + word + specialSuffix);
+        passphraseArray.push(word);
       }
-      
-      let passphraseStr = passphraseArray.join(delimiter);
-      
-      // Sicherstellen, dass mindestens ein Sonderzeichen vorhanden ist
-      if (specialCharsEnabled && !containsSpecialChar(passphraseStr)) {
-        let idx = Math.floor(Math.random() * passphraseArray.length);
-        passphraseArray[idx] = getRandomSpecialChar() + passphraseArray[idx];
-        passphraseStr = passphraseArray.join(delimiter);
-      }
-      // Sicherstellen, dass mindestens eine Zahl vorhanden ist
-      if (includeNumbers && !containsNumber(passphraseStr)) {
-        let idx = Math.floor(Math.random() * passphraseArray.length);
-        passphraseArray[idx] += getRandomNumber();
-        passphraseStr = passphraseArray.join(delimiter);
-      }
-      return passphraseStr;
+      return passphraseArray.join(delimiter);
     }
 
     function copyToClipboard(text) {
+      const successElem = document.getElementById('success');
+      
+      // Zeige den Infotext
+      successElem.textContent = "Passphrase erfolgreich in die Zwischenablage kopiert!";
+      successElem.style.fontWeight = 'normal';
+      successElem.style.color = 'green';
+      
+      // Nach 1 Sekunde zeige den Warntext
+      setTimeout(function() {
+        successElem.textContent = "Achtung: Passphrase befindet sich noch im Zwischenspeicher!";
+        successElem.style.fontWeight = 'bold';
+        successElem.style.color = 'orange';
+      }, 1000);
+
+      // Nach weiteren 5 Sekunden (insgesamt 6 Sekunden) zurücksetzen
+      setTimeout(function() {
+        successElem.textContent = "Passphrase erfolgreich in die Zwischenablage kopiert!";
+        successElem.style.fontWeight = 'normal';
+        successElem.style.color = 'green';
+      }, 6000);
+
+      // Kopierlogik
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(function() {
-          document.getElementById('success').textContent = "Passphrase erfolgreich in die Zwischenablage kopiert!";
-        }, function(err) {
-          document.getElementById('success').textContent = "Fehler beim Kopieren: " + err;
+        navigator.clipboard.writeText(text).catch(err => {
+          successElem.textContent = "Fehler beim Kopieren: " + err;
+          successElem.style.fontWeight = 'normal';
+          successElem.style.color = 'red';
         });
       } else {
         const textArea = document.createElement('textarea');
@@ -255,13 +255,36 @@
         textArea.select();
         try {
           const successful = document.execCommand('copy');
-          const msg = successful ? 'Erfolgreich' : 'Fehler';
-          document.getElementById('success').textContent = msg + " in Zwischenablage kopiert!";
+          if (!successful) throw new Error("Kopieren fehlgeschlagen");
         } catch (err) {
-          document.getElementById('success').textContent = "Fehler beim Kopieren: " + err;
+          successElem.textContent = "Fehler beim Kopieren: " + err;
+          successElem.style.fontWeight = 'normal';
+          successElem.style.color = 'red';
         }
         document.body.removeChild(textArea);
       }
+    }
+
+
+
+
+
+
+
+
+    function showClipboardWarning() {
+      const warning = document.getElementById("clipboardWarning");
+      warning.style.display = "block";
+      let visible = true;
+      const interval = setInterval(() => {
+        warning.style.opacity = visible ? "1" : "0";
+        visible = !visible;
+      }, 500);
+      setTimeout(() => {
+        clearInterval(interval);
+        warning.style.display = "none";
+        warning.style.opacity = "1";
+      }, 5000);
     }
 
     document.getElementById('fileInput').addEventListener('change', function(event) {
