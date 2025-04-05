@@ -206,35 +206,32 @@
       if (wordList.length === 0) {
         document.getElementById('error').textContent = "Fehler: Bitte lade zuerst eine Wortliste hoch!";
         return "";
-      } else {
-        document.getElementById('error').textContent = "";
       }
 
       let passphraseArray = [];
-      let modificationIndices = [];
-      
-      const modificationCount = Math.ceil(numWords * 0.5);
-      
-      if (specialCharsEnabled || includeNumbers) {
-        modificationIndices = getEvenDistributionIndices(numWords, modificationCount);
-      }
-
       for (let i = 0; i < numWords; i++) {
         let word = wordList[Math.floor(Math.random() * wordList.length)];
-        word = applyCase(word, caseStyle);
-
-        if (modificationIndices.includes(i)) {
-          if (specialCharsEnabled) {
-            word += getRandomSpecialChar();
-          }
-          if (includeNumbers) {
-            word += getRandomNumber();
-          }
-        }
-        
-        passphraseArray.push(word);
+        passphraseArray.push(applyCase(word, caseStyle));
       }
-      
+
+      // EIN Sonderzeichen und EINE Zahl in der gesamten Passphrase (wenn aktiviert)
+      if (specialCharsEnabled || includeNumbers) {
+        // Zwei verschiedene Wörter für Modifikationen auswählen
+        const indices = [...Array(numWords).keys()].sort(() => 0.5 - Math.random()).slice(0, 2);
+        
+        if (specialCharsEnabled && includeNumbers) {
+          passphraseArray[indices[0]] += getRandomSpecialChar();
+          passphraseArray[indices[1]] += getRandomNumber();
+        } 
+        else if (specialCharsEnabled) {
+          passphraseArray[indices[0]] += getRandomSpecialChar();
+        } 
+        else if (includeNumbers) {
+          passphraseArray[indices[0]] += getRandomNumber();
+        }
+      }
+
+      document.getElementById('error').textContent = "";
       return passphraseArray.join(delimiter);
     }
 
