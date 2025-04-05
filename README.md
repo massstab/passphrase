@@ -45,8 +45,3 @@ Dieses Projekt ist unter der [MIT Lizenz](LICENSE) lizenziert.
 
 - Der Code wurde von Eric Smith entwickelt und vollständig durch vibe coding generiert.
 ```
-
-### Erklärung des Inhalts:
-- **Wortliste Beispiel**: Das Beispiel enthält nun eine verbesserte, realistische Wortliste, die sowohl aus gängigen als auch weniger gängigen Wörtern besteht.
-- **Erklärung der Formatierung**: Die Wortliste kann durch Leerzeichen getrennt in einer einzigen Zeile oder in mehreren Zeilen gespeichert werden.
-- **Verwendung und Installation**: Die Schritte sind detailliert beschrieben, um das Projekt einfach herunterzuladen und zu verwenden.
