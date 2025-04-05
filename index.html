@@ -141,6 +141,7 @@
 
   <script>
     let wordList = [];
+    const specialCharsArr = ['@', '#', '$', '%', '&', '*', '!', '?', '_', '+'];
 
     function processWordList(content) {
       return content.trim().toLowerCase().split(/\s+/).filter(word => word.length > 0);
@@ -173,12 +174,19 @@
     }
 
     function getRandomSpecialChar() {
-      const specialChars = ['@', '#', '$', '%', '&', '*', '!', '?', '_', '+'];
-      return specialChars[Math.floor(Math.random() * specialChars.length)];
+      return specialCharsArr[Math.floor(Math.random() * specialCharsArr.length)];
     }
 
     function getRandomNumber() {
       return Math.floor(Math.random() * 10).toString();
+    }
+
+    function containsSpecialChar(str) {
+      return specialCharsArr.some(char => str.includes(char));
+    }
+
+    function containsNumber(str) {
+      return /\d/.test(str);
     }
 
     function generatePassphrase() {
@@ -200,15 +208,37 @@
         let word = wordList[Math.floor(Math.random() * wordList.length)];
         word = applyCase(word, caseStyle);
 
-        if (specialCharsEnabled && Math.random() < 0.5) {
-          word = (Math.random() < 0.5 ? getRandomSpecialChar() : "") + word + (Math.random() < 0.5 ? getRandomSpecialChar() : "");
+        let specialPrefix = "";
+        let specialSuffix = "";
+        if (specialCharsEnabled) {
+          if (Math.random() < 0.5) {
+            specialPrefix = getRandomSpecialChar();
+          }
+          if (Math.random() < 0.5) {
+            specialSuffix = getRandomSpecialChar();
+          }
         }
         if (includeNumbers && Math.random() < 0.3) {
           word += getRandomNumber();
         }
-        passphraseArray.push(word);
+        passphraseArray.push(specialPrefix + word + specialSuffix);
       }
-      return passphraseArray.join(delimiter);
+      
+      let passphraseStr = passphraseArray.join(delimiter);
+      
+      // Sicherstellen, dass mindestens ein Sonderzeichen vorhanden ist
+      if (specialCharsEnabled && !containsSpecialChar(passphraseStr)) {
+        let idx = Math.floor(Math.random() * passphraseArray.length);
+        passphraseArray[idx] = getRandomSpecialChar() + passphraseArray[idx];
+        passphraseStr = passphraseArray.join(delimiter);
+      }
+      // Sicherstellen, dass mindestens eine Zahl vorhanden ist
+      if (includeNumbers && !containsNumber(passphraseStr)) {
+        let idx = Math.floor(Math.random() * passphraseArray.length);
+        passphraseArray[idx] += getRandomNumber();
+        passphraseStr = passphraseArray.join(delimiter);
+      }
+      return passphraseStr;
     }
 
     function copyToClipboard(text) {
