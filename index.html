@@ -189,64 +189,71 @@
       return Math.floor(Math.random() * 10).toString();
     }
 
+    function getEvenDistributionIndices(total, count) {
+        if (count === 0) return [];
+        if (count === 1) return [Math.floor(total / 2)];
+        const step = (total - 1) / (count - 1);
+        return Array.from({length: count}, (_, i) => Math.round(i * step));
+    }
+
     function generatePassphrase() {
-      const numWords = parseInt(document.getElementById('numWords').value, 10);
-      const specialCharsEnabled = document.getElementById('specialChars').checked;
-      const includeNumbers = document.getElementById('includeNumbers').checked;
-      const delimiter = document.getElementById('delimiter').value;
-      const caseStyle = document.getElementById('caseStyle').value;
+        const numWords = parseInt(document.getElementById('numWords').value, 10);
+        const specialCharsEnabled = document.getElementById('specialChars').checked;
+        const includeNumbers = document.getElementById('includeNumbers').checked;
+        const delimiter = document.getElementById('delimiter').value;
+        const caseStyle = document.getElementById('caseStyle').value;
 
-      if (wordList.length === 0) {
-        document.getElementById('error').textContent = "Fehler: Bitte lade zuerst eine Wortliste hoch!";
-        return "";
-      } else {
-        document.getElementById('error').textContent = "";
-      }
-
-      let passphraseArray = [];
-      for (let i = 0; i < numWords; i++) {
-        let word = wordList[Math.floor(Math.random() * wordList.length)];
-        word = applyCase(word, caseStyle);
-
-        if (specialCharsEnabled) {
-          word = getRandomSpecialChar() + word + getRandomSpecialChar();
+        if (wordList.length === 0) {
+            document.getElementById('error').textContent = "Fehler: Bitte lade zuerst eine Wortliste hoch!";
+            return "";
+        } else {
+            document.getElementById('error').textContent = "";
         }
-        if (includeNumbers) {
-          word += getRandomNumber();
+
+        let passphraseArray = [];
+        let modificationIndices = [];
+        
+        // Berechne Gesamtmodifikationen (Sonderzeichen oder Zahlen)
+        const modificationCount = Math.ceil(numWords * 0.5);
+        
+        if (specialCharsEnabled || includeNumbers) {
+            modificationIndices = getEvenDistributionIndices(numWords, modificationCount);
         }
-        passphraseArray.push(word);
-      }
-      return passphraseArray.join(delimiter);
+
+        for (let i = 0; i < numWords; i++) {
+            let word = wordList[Math.floor(Math.random() * wordList.length)];
+            word = applyCase(word, caseStyle);
+
+            // Modifikationen hinzufügen (entweder Sonderzeichen oder Zahl oder beides)
+            if (modificationIndices.includes(i)) {
+                if (specialCharsEnabled) {
+                    word += getRandomSpecialChar();
+                }
+                if (includeNumbers) {
+                    word += getRandomNumber();
+                }
+            }
+            
+            passphraseArray.push(word);
+        }
+        
+        return passphraseArray.join(delimiter);
     }
 
     function copyToClipboard(text) {
       const successElem = document.getElementById('success');
       
-      // Zeige den Infotext
-      successElem.textContent = "Passphrase erfolgreich in die Zwischenablage kopiert!";
-      successElem.style.fontWeight = 'normal';
-      successElem.style.color = 'green';
-      
-      // Nach 1 Sekunde zeige den Warntext
-      setTimeout(function() {
-        successElem.textContent = "Achtung: Passphrase befindet sich noch im Zwischenspeicher!";
-        successElem.style.fontWeight = 'bold';
-        successElem.style.color = 'orange';
-      }, 1000);
-
-      // Nach weiteren 5 Sekunden (insgesamt 6 Sekunden) zurücksetzen
-      setTimeout(function() {
-        successElem.textContent = "Passphrase erfolgreich in die Zwischenablage kopiert!";
-        successElem.style.fontWeight = 'normal';
-        successElem.style.color = 'green';
-      }, 6000);
-
-      // Kopierlogik
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).catch(err => {
+        navigator.clipboard.writeText(text).then(function() {
+          // Erster Text
+          successElem.innerHTML = "Passphrase erfolgreich in die Zwischenablage kopiert!<br><strong>Achtung!</strong> Die Passphrase befindet sich noch im Zwischenspeicher.";
+          
+          // Den Text nach 6 Sekunden verschwinden lassen
+          setTimeout(function() {
+            successElem.innerHTML = "";
+          }, 6000); // Erfolgt nach 6 Sekunden
+        }, function(err) {
           successElem.textContent = "Fehler beim Kopieren: " + err;
-          successElem.style.fontWeight = 'normal';
-          successElem.style.color = 'red';
         });
       } else {
         const textArea = document.createElement('textarea');
@@ -255,20 +262,19 @@
         textArea.select();
         try {
           const successful = document.execCommand('copy');
-          if (!successful) throw new Error("Kopieren fehlgeschlagen");
+          const msg = successful ? 'Erfolgreich' : 'Fehler';
+          successElem.innerHTML = msg + " in Zwischenablage kopiert!<br><strong>Achtung!</strong> Die Passphrase befindet sich noch im Zwischenspeicher.";
+          
+          // Den Text nach 6 Sekunden verschwinden lassen
+          setTimeout(function() {
+            successElem.innerHTML = "";
+          }, 6000); // Erfolgt nach 6 Sekunden
         } catch (err) {
           successElem.textContent = "Fehler beim Kopieren: " + err;
-          successElem.style.fontWeight = 'normal';
-          successElem.style.color = 'red';
         }
         document.body.removeChild(textArea);
       }
     }
-
-
-
-
-
 
 
 
