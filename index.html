@@ -134,7 +134,7 @@
     </div>
     <div class="option-group">
       <label>Trennzeichen zwischen Wörtern:</label>
-      <input type="text" id="delimiter" value="-" placeholder="Standard: -" />
+      <input type="text" id="delimiter" value="-" placeholder="Leer für keinen Trenner" />
     </div>
     <div class="buttons option-group">
       <button id="generateButton">Passphrase generieren</button>
@@ -200,8 +200,8 @@
       const numWords = parseInt(document.getElementById('numWords').value, 10);
       const specialCharsEnabled = document.getElementById('specialChars').checked;
       const includeNumbers = document.getElementById('includeNumbers').checked;
-      const delimiter = document.getElementById('delimiter').value || "-";
-      const caseStyle = document.getElementById('caseStyle').value;
+      const delimiterInput = document.getElementById('delimiter').value;
+      const delimiter = delimiterInput === "" ? "" : delimiterInput;      const caseStyle = document.getElementById('caseStyle').value;
 
       if (wordList.length === 0) {
         document.getElementById('error').textContent = "Fehler: Bitte lade zuerst eine Wortliste hoch!";
