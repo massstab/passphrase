@@ -1,10 +1,31 @@
 let wordList = [];
 
-// Funktion, um die hochgeladene Datei zu verarbeiten
+// Automatisches Laden der JSON-Wortliste aus "wordlist.json"
+function loadWordListFromServer() {
+  fetch("wordlist.json")
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("HTTP-Fehler: " + response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Hier gehen wir davon aus, dass die JSON-Datei ein Array mit Wörtern enthält.
+      wordList = data;
+      console.log("JSON-Wortliste erfolgreich geladen:", wordList);
+    })
+    .catch(error => {
+      console.error("Fehler beim automatischen Laden der JSON-Wortliste:", error);
+      document.getElementById('error').textContent = "Fehler: Wortliste konnte nicht automatisch geladen werden! Bitte lade eine Datei hoch.";
+    });
+}
+
+// Funktion, um die hochgeladene Datei zu verarbeiten (für .txt-Dateien)
 function readFile(file) {
   const reader = new FileReader();
   reader.onload = function(event) {
     const content = event.target.result;
+    // Bei einer .txt-Datei verarbeiten wir den Inhalt in ein Array von Wörtern:
     wordList = processWordList(content);
     if (wordList.length === 0) {
       document.getElementById('error').textContent = "Fehler: Die Wortliste ist leer!";
@@ -19,17 +40,15 @@ function readFile(file) {
     document.getElementById('error').textContent = "Fehler beim Laden der Datei!";
   };
   
-  // Lese die Datei als Text
   reader.readAsText(file);
 }
 
-// Funktion zum Bearbeiten der Wortliste
+// Funktion zum Bearbeiten der Wortliste (Aus .txt-Inhalt)
 function processWordList(content) {
-  // Entferne Leerzeichen, Zeilenumbrüche und filtere leere Einträge
   return content.trim().toLowerCase().split(/\s+/).filter(word => word.length > 0);
 }
 
-// Funktion zum Anwenden der Groß-/Kleinschreibung auf jedes Wort
+// Funktion zum Anwenden der Groß-/Kleinschreibung
 function applyCase(word, mode) {
   switch (mode) {
     case "lowercase":
@@ -41,7 +60,7 @@ function applyCase(word, mode) {
   }
 }
 
-// Funktion, um ein zufälliges Sonderzeichen zu bekommen
+// Funktion, um ein zufälliges Sonderzeichen zu erhalten
 function getRandomSpecialChar() {
   const specialChars = ['@', '#', '$', '%', '&', '*', '!', '?', '_', '+'];
   return specialChars[Math.floor(Math.random() * specialChars.length)];
@@ -52,7 +71,7 @@ function getRandomNumber() {
   return Math.floor(Math.random() * 10).toString();
 }
 
-// Funktion, um die Passphrase zu generieren
+// Funktion zur Generierung der Passphrase
 function generatePassphrase() {
   const numWords = parseInt(document.getElementById('numWords').value, 10);
   const specialCharsEnabled = document.getElementById('specialChars').checked;
@@ -72,19 +91,26 @@ function generatePassphrase() {
     passphraseArray.push(applyCase(word, caseStyle));
   }
 
-  // Sonderzeichen und Zahlen in die Passphrase einfügen (wenn aktiviert)
+  // Sonderzeichen und Zahlen zufällig hinzufügen, falls aktiviert
   if (specialCharsEnabled || includeNumbers) {
-    // Zwei zufällige Indizes auswählen
-    const indices = [...Array(numWords).keys()].sort(() => 0.5 - Math.random()).slice(0, 2);
+    let indices = [];
+    if (specialCharsEnabled && includeNumbers) {
+      let index1 = Math.floor(Math.random() * numWords);
+      let index2;
+      do {
+        index2 = Math.floor(Math.random() * numWords);
+      } while (index2 === index1);
+      indices = [index1, index2];
+    } else {
+      indices = [Math.floor(Math.random() * numWords)];
+    }
 
     if (specialCharsEnabled && includeNumbers) {
       passphraseArray[indices[0]] += getRandomSpecialChar();
       passphraseArray[indices[1]] += getRandomNumber();
-    } 
-    else if (specialCharsEnabled) {
+    } else if (specialCharsEnabled) {
       passphraseArray[indices[0]] += getRandomSpecialChar();
-    } 
-    else if (includeNumbers) {
+    } else if (includeNumbers) {
       passphraseArray[indices[0]] += getRandomNumber();
     }
   }
@@ -93,17 +119,17 @@ function generatePassphrase() {
   return passphraseArray.join(delimiter);
 }
 
-// Funktion, um den Text in die Zwischenablage zu kopieren
+// Funktion zum Kopieren in die Zwischenablage
 function copyToClipboard(text) {
   const successElem = document.getElementById('success');
 
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(function() {
       successElem.innerHTML = "Passphrase erfolgreich in die Zwischenablage kopiert!<br><strong>Achtung!</strong> Die Passphrase befindet sich noch im Zwischenspeicher.";
-
       setTimeout(function() {
         successElem.innerHTML = "";
       }, 6000);
+      showClipboardWarning();
     }, function(err) {
       successElem.textContent = "Fehler beim Kopieren: " + err;
     });
@@ -116,10 +142,10 @@ function copyToClipboard(text) {
       const successful = document.execCommand('copy');
       const msg = successful ? 'Erfolgreich' : 'Fehler';
       successElem.innerHTML = msg + " in Zwischenablage kopiert!<br><strong>Achtung!</strong> Die Passphrase befindet sich noch im Zwischenspeicher.";
-
       setTimeout(function() {
         successElem.innerHTML = "";
       }, 6000);
+      showClipboardWarning();
     } catch (err) {
       successElem.textContent = "Fehler beim Kopieren: " + err;
     }
@@ -127,7 +153,7 @@ function copyToClipboard(text) {
   }
 }
 
-// Funktion, um eine Warnung anzuzeigen, dass die Passphrase noch im Zwischenspeicher sein könnte
+// Funktion zum Anzeigen der Warnung, dass die Passphrase in der Zwischenablage verbleibt
 function showClipboardWarning() {
   const warning = document.getElementById("clipboardWarning");
   warning.style.display = "block";
@@ -143,7 +169,7 @@ function showClipboardWarning() {
   }, 5000);
 }
 
-// Event-Listener für die Datei-Auswahl
+// Event-Listener für den Datei-Upload (.txt)
 document.getElementById('fileInput').addEventListener('change', function(event) {
   const file = event.target.files[0];
   if (file) {
@@ -164,8 +190,12 @@ document.getElementById('copyButton').addEventListener('click', function() {
   const passphrase = document.getElementById('passphrase').innerText;
   if (passphrase) {
     copyToClipboard(passphrase);
-    showClipboardWarning();
   } else {
     alert("Keine Passphrase zum Kopieren vorhanden!");
   }
 });
+
+// Beim Laden der Seite versuchen wir, die JSON-Wortliste automatisch zu laden
+window.onload = function() {
+  loadWordListFromServer();
+};
