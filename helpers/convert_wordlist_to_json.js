@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // 1. Datei einlesen
-const input = fs.readFileSync(path.join(__dirname, 'wortliste.txt'), 'utf8');
+const input = fs.readFileSync(path.join(__dirname, 'wordlist.txt'), 'utf8');
 
 // 2. Verarbeiten mit DEINER Funktion
 function processWordList(content) {
