@@ -4,63 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Passphrase Generator</title>
-
-  <!-- Verlinkung der CSS-Datei -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- Favicons -->
-  <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
-  <link rel="icon" type="image/png" href="icons/favicon-512x512.png" sizes="512x512">
-  <link rel="icon" type="image/png" href="icons/favicon-192x192.png" sizes="192x192">
-  <link rel="icon" type="image/png" href="icons/favicon-48x48.png" sizes="48x48">
-  <link rel="icon" type="image/png" href="icons/favicon-32x32.png" sizes="32x32">
-  <link rel="icon" type="image/png" href="icons/favicon-16x16.png" sizes="16x16">
-  <link rel="apple-touch-icon" href="icons/favicon-180x180.png" sizes="180x180">
 </head>
-
 <body>
   <div class="container">
-    <h1>Passphrase Generator</h1>
+    <div class="top-buttons">
+      <button id="langDeButton">Deutsch</button>
+      <button id="langEnButton">English</button>
+      <button id="darkModeButton">🌙 Dark Mode</button>
+    </div>
+
+    <h1 id="title"></h1>
+
     <div class="option-group">
-      <label>Datei (wortliste.txt):</label>
+      <label id="fileLabel"></label>
       <input type="file" id="fileInput" accept=".txt" />
     </div>
+
     <div class="option-group">
-      <label>Anzahl der Wörter:</label>
+      <label id="numWordsLabel"></label>
       <input type="number" id="numWords" value="4" min="3" max="12" />
     </div>
+
     <div class="option-group">
-      <label>Groß-/Kleinschreibung:</label>
+      <label id="caseLabel"></label>
       <select id="caseStyle">
-        <option value="lowercase">Nur Kleinbuchstaben</option>
-        <option value="capitalized">Erste Groß, Rest klein</option>
-        <option value="uppercase">Nur Großbuchstaben</option>
+        <option value="lowercase" id="lowercaseOption"></option>
+        <option value="capitalized" id="capitalizedOption"></option>
+        <option value="uppercase" id="uppercaseOption"></option>
       </select>
     </div>
+
     <div class="option-group">
-      <label>Sonderzeichen einfügen:</label>
-      <input type="checkbox" id="specialChars" /> Ja
+      <label id="specialCharsLabel"></label>
+      <input type="checkbox" id="specialChars" />
+      <span id="yesText"></span>
     </div>
+
     <div class="option-group">
-      <label>Zahlen hinzufügen:</label>
-      <input type="checkbox" id="includeNumbers" /> Ja
+      <label id="includeNumbersLabel"></label>
+      <input type="checkbox" id="includeNumbers" />
+      <span id="yesText2"></span>
     </div>
+
     <div class="option-group">
-      <label>Trennzeichen zwischen Wörtern:</label>
-      <input type="text" id="delimiter" value="-" placeholder="Leer für keinen Trenner" />
+      <label id="delimiterLabel"></label>
+      <input type="text" id="delimiter" value="-" placeholder="" />
     </div>
+
     <div class="buttons option-group">
-      <button id="generateButton">Passphrase generieren</button>
-      <button id="copyButton">In Zwischenablage kopieren</button>
+      <button id="generateButton"></button>
+      <button id="copyButton"></button>
     </div>
-    <h3>Generierte Passphrase:</h3>
+
+    <h3 id="generatedLabel"></h3>
     <p id="passphrase"></p>
     <p id="error"></p>
     <p id="success"></p>
-    <p id="clipboardWarning">⚠️ Die Passphrase könnte weiterhin in der Zwischenablage-Historie gespeichert sein!</p>
+    <p id="clipboardWarning"></p>
   </div>
 
-  <!-- Verlinkung der JavaScript-Datei -->
-  <script src="script.js"></script>
+  <script src="script_i18n.js"></script>
 </body>
 </html>
